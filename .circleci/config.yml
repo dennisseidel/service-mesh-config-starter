@@ -1,0 +1,25 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: google/cloud-sdk
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            apt-get install -qqy ruby jq
+            gem install bump
+      - checkout
+      - run: which gcloud
+      - run:
+          name: Setup Pipeline Image
+          command: ./devops/machine-setup.sh
+      - run:
+          name: Setup cluster
+          command: ./devops/gke-cluster-setup.sh
+      - run:
+          name: Install Istio to cluster
+          command: ./devops/install-istio.sh
+      - run:
+          name: Build and Deploy Ingress Proxies
+          command: ./devops/build-and-deploy.sh
