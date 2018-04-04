@@ -3,7 +3,7 @@
 set -ex
 
 # Donwload latest version and set path variable to istio for istioctl e.g. "$PATH:/Users/den/repo/test/istio-0.6.0/bin"
-# curl -L https://git.io/getLatestIstio | sh -
+curl -L https://git.io/getLatestIstio | sh -
 export ISTIO_DIR="$(find . -type d -name istio-*.*  -exec basename {} \;)"
 
 # install configure ingress rules
