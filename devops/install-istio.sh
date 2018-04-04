@@ -1,27 +1,28 @@
 #!/bin/bash
 
-#Get Istio
 
-# Donwload latest version and set path variable to istio e.g. "$PATH:/Users/den/repo/test/istio-0.6.0/bin"
-curl -L https://git.io/getLatestIstio | sh -
-
-# Iternate of the list of all folder in the dir and search for the folder with pattern istio-* then save this
-# foldername to env var ISTIO_DIR
-export ISTIO_DIR="$(find . -type d -name istio-*.*  -exec basename {} \;)"
 
 #install istio
-kubectl apply -f $ISTIO_DIR/install/kubernetes/istio.yaml
-kubectl apply -f $ISTIO_DIR/install/kubernetes/istio-auth.yaml
+istio_install_check=$(kubectl get namespaces)
+if [[ $istio_install_check != *"istio-system"* ]]; then
+  # Donwload latest version and set path variable to istio e.g. "$PATH:/Users/den/repo/test/istio-0.6.0/bin"
+  curl -L https://git.io/getLatestIstio | sh -
 
+  # Iternate of the list of all folder in the dir and search for the folder with pattern istio-* then save this
+  # foldername to env var ISTIO_DIR
+  export ISTIO_DIR="$(find . -type d -name istio-*.*  -exec basename {} \;)"
 
-# Add-ons
-kubectl apply \
-  -f $ISTIO_DIR/install/kubernetes/addons/prometheus.yaml \
-  -f $ISTIO_DIR/install/kubernetes/addons/grafana.yaml \
-  -f $ISTIO_DIR/install/kubernetes/addons/servicegraph.yaml \
-  -f $ISTIO_DIR/install/kubernetes/addons/zipkin.yaml \
-  -f $ISTIO_DIR/install/kubernetes/addons/zipkin-to-stackdriver.yaml
+  kubectl apply -f $ISTIO_DIR/install/kubernetes/istio.yaml
+  kubectl apply -f $ISTIO_DIR/install/kubernetes/istio-auth.yaml
 
+  # Add-ons
+  kubectl apply \
+    -f $ISTIO_DIR/install/kubernetes/addons/prometheus.yaml \
+    -f $ISTIO_DIR/install/kubernetes/addons/grafana.yaml \
+    -f $ISTIO_DIR/install/kubernetes/addons/servicegraph.yaml \
+    -f $ISTIO_DIR/install/kubernetes/addons/zipkin.yaml \
+    -f $ISTIO_DIR/install/kubernetes/addons/zipkin-to-stackdriver.yaml
+fi
 
 # Configuring secure ingress (HTTPS)
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /tmp/tls.key -out /tmp/tls.crt -subj "/CN=d10l.de"
