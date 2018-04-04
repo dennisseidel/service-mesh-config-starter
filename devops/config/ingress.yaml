@@ -12,7 +12,7 @@ spec:
   - host: open.d10l.de
     http:
       paths:
-      - path: /.i*
+      - path: /developer-portal-ui/.*
         backend:
           serviceName: developer-portal-ui
           servicePort: 80
