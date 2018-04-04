@@ -12,7 +12,7 @@ spec:
   - host: open.d10l.de
     http:
       paths:
-      - path: /developer-portal-ui/.*
+      - path: /.i*
         backend:
           serviceName: developer-portal-ui
           servicePort: 80
@@ -23,4 +23,16 @@ spec:
         backend:
           serviceName: identities
           servicePort: 9090
+---
+apiVersion: config.istio.io/v1alpha2
+kind: EgressRule
+metadata:
+  name: auth0api
+  namespace: default
+spec:
+  destination:
+      service: "d10l.eu.auth0.com"
+  ports:
+      - port: 443
+        protocol: https
 ---
