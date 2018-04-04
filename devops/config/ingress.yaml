@@ -16,4 +16,11 @@ spec:
         backend:
           serviceName: developer-portal-ui
           servicePort: 80
+  - host: api.d10l.de
+    http:
+      paths:
+      - path: /identities/.*
+        backend:
+          serviceName: identities
+          servicePort: 9090
 ---
