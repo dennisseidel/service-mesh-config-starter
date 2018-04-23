@@ -8,6 +8,8 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: "istio"
 spec:
+  tls:
+    - secretName: istio-ingress-certs
   rules:
   - host: open.d10l.de
     http:
