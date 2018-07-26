@@ -1,7 +1,7 @@
 #!/bin/bash
 set -x
 
-if [ "$KUBE_ENV" = "local" ] 
+if [ "$KUBE_ENV" = "osx" ] 
 then
   if ! [ -x "$(command -v brew)" ]; then
     echo 'Info: brew is not installed. Installing it now:'
