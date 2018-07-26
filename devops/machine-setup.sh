@@ -72,7 +72,7 @@ then
   echo $INGRESS_HOST:$INGRESS_PORT
 fi
 
-if [ "$KUBE_ENV" = "glcoud" ] 
+if [ "$KUBE_ENV" = "gcloud" ] 
 then
   #check where gcloud is installed 
   which gcloud
