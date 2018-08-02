@@ -30,11 +30,10 @@ then
 
   clustercheck=$(kubectl --request-timeout=5s get services || true)
   if [[ $clustercheck != *"kubernetes"* ]]; then
-    minikube start --vm-driver=hyperkit -b=localkube \
+    minikube start --memory=8192 --cpus=4 --vm-driver=hyperkit -b=localkube \
     --extra-config=apiserver.Authorization.Mode=RBAC \
     --extra-config=controller-manager.ClusterSigningCertFile="/var/lib/localkube/certs/ca.crt" \
     --extra-config=controller-manager.ClusterSigningKeyFile="/var/lib/localkube/certs/ca.key" \
-    --extra-config=apiserver.Admission.PluginNames=NamespaceLifecycle,LimitRanger,ServiceAccount,PersistentVolumeLabel,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota \
     --kubernetes-version=v1.10.0 \
     --extra-config=apiserver.ServiceNodePortRange=79-36000
     sleep 5 
@@ -52,21 +51,22 @@ then
   fi
   cd $ISTIO_DIR 
   export PATH=$PWD/bin:$PATH
+  kubectl apply -f install/kubernetes/helm/istio/templates/crds.yaml
   kubectl create -f install/kubernetes/helm/helm-service-account.yaml
   helm init --wait --service-account tiller
   helm install install/kubernetes/helm/istio --name istio --namespace istio-system \
   --set global.proxy.includeIPRanges="" \
+  --set global.crds=false \
   --set tracing.enabled=true \
-  --set ingressgateway.service.type=NodePort \
-  --set ingressgateway.service.ports[0].port=80,ingressgateway.service.ports[0].name=http,ingressgateway.service.ports[0].nodePort=80 \
-  --set ingressgateway.service.ports[1].port=443,ingressgateway.service.ports[1].name=https,ingressgateway.service.ports[1].nodePort=443 \
-  --set ingressgateway.service.ports[2].port=31400,ingressgateway.service.ports[2].name=tcp,ingressgateway.service.ports[2].nodePort=31400 \
-  --set egressgateway.service.type=NodePort
+  --set gateways.istio-ingressgateway.type=NodePort \
+  --set gateways.istio-ingressgateway.ports[0].port=80,gateways.istio-ingressgateway.ports[0].name=http2,gateways.istio-ingressgateway.ports[0].nodePort=80 \
+  --set gateways.istio-ingressgateway.ports[1].port=443,gateways.istio-ingressgateway.ports[1].name=https,gateways.istio-ingressgateway.ports[1].nodePort=443 \
+  --set gateways.istio-ingressgateway.ports[2].port=31400,gateways.istio-ingressgateway.ports[2].name=tcp,gateways.istio-ingressgateway.ports[2].nodePort=31400
   echo "check that the following services exist: istio-pilot, istio-ingressgateway, istio-policy, istio-telemetry, prometheus and, optionally, istio-sidecar-injector"
   kubectl get svc -n istio-system
   echo "check that the following pods exist: istio-pilot-*, istio-ingressgateway-*, istio-egressgateway-*, istio-policy-*, istio-telemtry-*, istio-citadel-*, prometheus-* and, optionally, istio-sidecar-injector-*"
   kubectl get pods -n istio-system
-  INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http")].nodePort}')
+  INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')
   SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}')
   INGRESS_HOST=$(minikube ip)
   echo $INGRESS_HOST:$INGRESS_PORT
