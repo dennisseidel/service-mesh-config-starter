@@ -4,6 +4,8 @@ jobs:
     docker:
       - image: google/cloud-sdk
     steps:
+      - request-testing:
+          type: approval
       - run:
           name: Install dependencies
           command: |
