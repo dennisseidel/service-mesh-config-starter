@@ -11,7 +11,7 @@ variable "cluster_name" {
 }
 
 variable "kubernetes_version" {
-  default = "latest"
+  default = "1.10.5-gke.4"
 }
 
 variable "username" {}
@@ -20,7 +20,11 @@ variable "password" {}
 resource "google_container_cluster" "primary" {
   name               = "${var.cluster_name}"
   zone               = "${data.google_compute_zones.available.names[0]}"
-  initial_node_count = 1
+  remove_default_node_pool = true
+
+  node_pool {
+    name = "primary-pool"
+  }
 
   node_version       = "${var.kubernetes_version}"
   min_master_version = "${var.kubernetes_version}"
@@ -33,13 +37,17 @@ resource "google_container_cluster" "primary" {
     username = "${var.username}"
     password = "${var.password}"
   }
+}
+
+resource "google_container_node_pool" "primary_pool" {
+  name       = "primary-pool"
+  zone       = "${data.google_compute_zones.available.names[0]}"
+  cluster    = "${google_container_cluster.primary.name}"
+  node_count = "3"
+
   node_config {
-    oauth_scopes = [
-      "https://www.googleapis.com/auth/compute",
-      "https://www.googleapis.com/auth/devstorage.read_only",
-      "https://www.googleapis.com/auth/logging.write",
-      "https://www.googleapis.com/auth/monitoring",
-    ]
+    machine_type = "n1-standard-1"
+    preemptible = "true"
   }
 }
 
