@@ -101,6 +101,7 @@ then
   kubectl label namespace default istio-injection=enabled
   kubectl get namespace -L istio-injection
 
+  cd ..
   # isntallation https://istio.io/docs/setup/kubernetes/quick-start/#installation-steps
   ISTIO_DIR="$(find . -type d -name istio-*.*  -exec basename {} \;)"
   if [[ $ISTIO_DIR != *"istio"* ]]; then 

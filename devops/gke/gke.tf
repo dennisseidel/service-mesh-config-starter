@@ -17,28 +17,6 @@ variable "kubernetes_version" {
 variable "username" {}
 variable "password" {}
 
-resource "google_container_cluster" "primary" {
-  name               = "${var.cluster_name}"
-  zone               = "${data.google_compute_zones.available.names[0]}"
-  remove_default_node_pool = true
-
-  node_pool {
-    name = "primary-pool"
-  }
-
-  node_version       = "${var.kubernetes_version}"
-  min_master_version = "${var.kubernetes_version}"
-
-  #additional_zones = 
-  #  "${data.google_compute_zones.available.names[1]}",
-  #]
-
-  master_auth {
-    username = "${var.username}"
-    password = "${var.password}"
-  }
-}
-
 resource "google_container_node_pool" "primary_pool" {
   name       = "primary-pool"
   zone       = "${data.google_compute_zones.available.names[0]}"
@@ -48,6 +26,24 @@ resource "google_container_node_pool" "primary_pool" {
   node_config {
     machine_type = "n1-standard-1"
     preemptible = "true"
+  }
+}
+
+resource "google_container_cluster" "primary" {
+  name               = "${var.cluster_name}"
+  zone               = "${data.google_compute_zones.available.names[0]}"
+  remove_default_node_pool = true
+
+  node_pool {
+    name = "default-pool"
+  }
+
+  node_version       = "${var.kubernetes_version}"
+  min_master_version = "${var.kubernetes_version}"
+
+  master_auth {
+    username = "${var.username}"
+    password = "${var.password}"
   }
 }
 
