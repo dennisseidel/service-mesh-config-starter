@@ -53,7 +53,7 @@ The script uses terraform to setup your cluster with the [gcp provider (more inf
 1. Create a [service account](https://cloud.google.com/iam/docs/creating-managing-service-accounts) for your project using either the `console/ui` or `gcloud cli`
 2. Create a [service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) and download it
 3. Export it into the `GOOGLE_CREDENTIALS` environment variable (e.g. `export GOOGLE_CLOUD_KEYFILE_JSON=$(lpass show gcp-pipeline --attach att-4256166984432642173-1) `)
-4. Customize the terraform template
+4. Customize the terraform template under `config/gke` with `zone`, `cluster_name`, `machine_type` more config options are documented at the [gcp provider (more info)](https://www.terraform.io/docs/providers/google/index.html).
 5. Set the environement variable `export KUBE_ENV=gcp`
 6. Run the the `tasks/` `setup-maschine.sh` 
 
