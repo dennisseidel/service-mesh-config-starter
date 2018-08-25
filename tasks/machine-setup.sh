@@ -42,7 +42,7 @@ then
     --kubernetes-version=v1.10.0 \
     --extra-config=apiserver.ServiceNodePortRange=79-36000
     sleep 5 
-    kubectl apply istio/istiosetup-rbac.yaml
+    kubectl apply ../config/templates/rbac-istiosetup.yaml
     kubectl label namespace default istio-injection=enabled
     kubectl get namespace -L istio-injection
   fi
@@ -83,9 +83,8 @@ then
     echo 'Info: terraform is not installed. Installing it now:'
     brew install terraform
   fi
-  cd gke && terraform init
-  if [ -x "$(command -v lpass)" ]; then
-    export GOOGLE_CLOUD_KEYFILE_JSON=$(lpass show gcp-pipeline --attach att-4256166984432642173-1)
+  cd ../config/templates/gke && terraform init
+  if [ -x "$(command -v 1lpass)" ]; then
     terraform apply -var username=$(lpass show gcp-kubernetes --username) -var password=$(lpass show gcp-kubernetes --password)
   else
     terraform apply

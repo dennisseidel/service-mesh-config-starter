@@ -1,13 +1,13 @@
 # https://www.terraform.io/docs/providers/google/r/container_cluster.html
 # https://github.com/terraform-providers/terraform-provider-kubernetes/blob/master/_examples/google-gke-cluster/main.tf
+data "google_compute_zones" "available" {}
+
 variable "region" {
   default = "us-central1"
 }
 
-data "google_compute_zones" "available" {}
-
 variable "cluster_name" {
-  default = "d10l-plattform-cluster"
+  default = "sample-plattform-cluster"
 }
 
 variable "kubernetes_version" {
