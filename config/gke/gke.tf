@@ -2,21 +2,6 @@
 # https://github.com/terraform-providers/terraform-provider-kubernetes/blob/master/_examples/google-gke-cluster/main.tf
 data "google_compute_zones" "available" {}
 
-variable "region" {
-  default = "us-central1"
-}
-
-variable "cluster_name" {
-  default = "sample-plattform-cluster"
-}
-
-variable "kubernetes_version" {
-  default = "1.10.5-gke.4"
-}
-
-variable "username" {}
-variable "password" {}
-
 resource "google_container_node_pool" "primary_pool" {
   name       = "primary-pool"
   zone       = "${data.google_compute_zones.available.names[0]}"
@@ -30,7 +15,7 @@ resource "google_container_node_pool" "primary_pool" {
 }
 
 resource "google_container_cluster" "primary" {
-  name               = "${var.cluster_name}"
+  name               = "${var.clustername}"
   zone               = "${data.google_compute_zones.available.names[0]}"
   remove_default_node_pool = true
 
@@ -47,7 +32,7 @@ resource "google_container_cluster" "primary" {
   }
 }
 
-output "cluster_name" {
+output "clustername" {
   value = "${google_container_cluster.primary.name}"
 }
 

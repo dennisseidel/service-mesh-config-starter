@@ -10,6 +10,10 @@ Use the repository to apply [GitOps](https://www.weave.works/blog/gitops-operati
   * the local developer environment 
 
 
+## Prerequisists
+
+Python3 !
+
 ## Repository Structure
 
 The devops plattform repo includes a sample for the configuration to setup and maintain the plattform for the remote instances & the local development instances. This includes: 
