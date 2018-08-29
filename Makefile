@@ -5,8 +5,12 @@ setup-platform-local:
 delete-platform-local:
 	minikube delete
 
-setup-platform-gcp:
-	tasks/setup-platform.py gcp
+setup-platform-gcp-dev:
+	tasks/setup-platform.py gcp --stage=dev
+# add more tasks for different stages you require
+
+delete-platform-gcp-dev:
+	cd config/gke && terraform destroy -var username=${CLUSTER_PW} -var password=${CLUSTER_PW} -var-file=dev.tfvars
 	
 configure-platform:
 	kubectl apply -f config/templates/network-d10l.yaml

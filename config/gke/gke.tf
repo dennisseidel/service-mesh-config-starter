@@ -6,11 +6,11 @@ resource "google_container_node_pool" "primary_pool" {
   name       = "primary-pool"
   zone       = "${data.google_compute_zones.available.names[0]}"
   cluster    = "${google_container_cluster.primary.name}"
-  node_count = "3"
+  node_count = "${var.node_count}"
 
   node_config {
-    machine_type = "n1-standard-1"
-    preemptible = "true"
+    machine_type = "${var.machine_type}"
+    preemptible = "${var.preemptible}"
   }
 }
 

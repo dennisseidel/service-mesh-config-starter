@@ -1,4 +1,4 @@
 provider "google" {
   region  = "${var.region}"
-  project = "trusty-acre-156607"
+  project = "${var.gcp_project}"
 }

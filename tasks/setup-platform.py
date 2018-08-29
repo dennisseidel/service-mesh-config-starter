@@ -20,6 +20,10 @@ def check_platform(os_platform):
             "You are using %s. Only OSX currently supported.", os_platform)
         exit("Unsupported OS.")
 
+def go_to_script_location():
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    os.chdir(dname)
 
 def program_exists(command):
     return shutil.which(command) is not None
@@ -45,7 +49,7 @@ def install_dependencies(os_platform):
             run_cmd('brew install kubernetes-helm')
 
 
-def create_cluster(os_platform, target):
+def create_cluster(os_platform, target, stage):
     logger.info("Setup the cluster for %s from %s.", target, os_platform)
     response = run_cmd('kubectl --request-timeout=5s get services', True)
     if response.returncode == 0:
@@ -77,8 +81,9 @@ def create_cluster(os_platform, target):
                 CLUSTER_USER = os.environ["CLUSTER_USER"]
                 CLUSTER_PW = os.environ["CLUSTER_PW"]
                 os.system(f"""
-                cd ../config/gke && terraform init && \ 
-                terraform apply -var 'username={CLUSTER_USER}' -var 'password={CLUSTER_PW}' && \
+                pwd &&
+                cd ../config/gke && pwd && terraform init && \ 
+                terraform apply -var 'username={CLUSTER_USER}' -var 'password={CLUSTER_PW}' -var-file='{stage}.tfvars' && \
                 gcloud container clusters get-credentials d10l-plattform-cluster  --zone us-central1-a --project trusty-acre-156607 && \
                 kubectl cluster-info && \
                 kubectl create clusterrolebinding cluster-admin-binding \
@@ -87,7 +92,7 @@ def create_cluster(os_platform, target):
                 """)
                 
 
-def install_istio():
+def install_istio(target):
     os.system("kubectl label namespace default istio-injection=enabled")
     os.system("kubectl get namespace -L istio-injection")
     args = ['curl', '-L', 'https://git.io/getLatestIstio']
@@ -108,14 +113,23 @@ def install_istio():
     run_cmd(f'kubectl apply -f {ISTIO_FOLDER}/install/kubernetes/helm/istio/templates/crds.yaml')
     run_cmd(f'kubectl create -f {ISTIO_FOLDER}/install/kubernetes/helm/helm-service-account.yaml')
     run_cmd("helm init --wait --service-account tiller")
-    run_cmd(f'helm install {ISTIO_FOLDER}/install/kubernetes/helm/istio --name istio --namespace istio-system \
+    if target == 'local':
+        run_cmd(f'helm install {ISTIO_FOLDER}/install/kubernetes/helm/istio --name istio --namespace istio-system \
+                    --set global.proxy.includeIPRanges="" \
+                    --set global.crds=false \
+                    --set tracing.enabled=true \
+                    --set gateways.istio-ingressgateway.type=NodePort \
+                    --set gateways.istio-ingressgateway.ports[0].port=80,gateways.istio-ingressgateway.ports[0].name=http2,gateways.istio-ingressgateway.ports[0].nodePort=80 \
+                    --set gateways.istio-ingressgateway.ports[1].port=443,gateways.istio-ingressgateway.ports[1].name=https,gateways.istio-ingressgateway.ports[1].nodePort=443 \
+                    --set gateways.istio-ingressgateway.ports[2].port=31400,gateways.istio-ingressgateway.ports[2].name=tcp,gateways.istio-ingressgateway.ports[2].nodePort=31400')
+        INGRESS_HOST=run_cmd("minikube ip", True, False)
+    elif target == 'gcp':
+        run_cmd(f'''
+            helm install {ISTIO_FOLDER}/install/kubernetes/helm/istio --name istio --namespace istio-system \
                 --set global.proxy.includeIPRanges="" \
                 --set global.crds=false \
-                --set tracing.enabled=true \
-                --set gateways.istio-ingressgateway.type=NodePort \
-                --set gateways.istio-ingressgateway.ports[0].port=80,gateways.istio-ingressgateway.ports[0].name=http2,gateways.istio-ingressgateway.ports[0].nodePort=80 \
-                --set gateways.istio-ingressgateway.ports[1].port=443,gateways.istio-ingressgateway.ports[1].name=https,gateways.istio-ingressgateway.ports[1].nodePort=443 \
-                --set gateways.istio-ingressgateway.ports[2].port=31400,gateways.istio-ingressgateway.ports[2].name=tcp,gateways.istio-ingressgateway.ports[2].nodePort=31400')
+                --set tracing.enabled=true''')
+        INGRESS_HOST=run_cmd("kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.status.loadBalancer.ingress[0].ip}'", True, False)
     run_cmd("kubectl get svc -n istio-system")
     run_cmd("kubectl get pods -n istio-system")
     INGRESS_PORT = run_cmd(
@@ -125,21 +139,22 @@ def install_istio():
     SECURE_INGRESS_PORT=run_cmd('kubectl -n istio-system get service istio-ingressgateway -o jsonpath=\'{.spec.ports[?(@.name=="https")].nodePort}\'', True, False)
     SECURE_INGRESS_PORT=SECURE_INGRESS_PORT.stdout
     logger.info("Secure Ingress Port: " + SECURE_INGRESS_PORT.decode("utf-8"))
-    INGRESS_HOST=run_cmd("minikube ip", True, False)
+    
     INGRESS_HOST=INGRESS_HOST.stdout
     logger.info('Ingress Host: ' + INGRESS_HOST.decode("utf-8"))
 
 def local_setup():
     my_platform = check_platform(platform)
     install_dependencies(my_platform)
-    create_cluster(my_platform, "local")
-    install_istio()
+    create_cluster(my_platform, "local", 'not_used')
+    install_istio('local')
 
-def gcp_setup():
+def gcp_setup(stage):
     my_platform = check_platform(platform)
     install_dependencies(my_platform)
-    create_cluster(my_platform, "gcp")
-    install_istio()
+    create_cluster(my_platform, "gcp", stage)
+    install_istio('gcp')
+
 
 if __name__ == '__main__':
     logger = logging.getLogger()
@@ -151,11 +166,13 @@ if __name__ == '__main__':
     logger.setLevel(logging.DEBUG)
     parser = argparse.ArgumentParser()
     parser.add_argument("type", help="specifies the the deployment e.g. local or gcp")
+    parser.add_argument("--stage", help="stage to deloy to")
     args = parser.parse_args()
+    go_to_script_location()
     if args.type == 'local':
         local_setup()
     elif args.type == 'gcp':
-        gcp_setup()
+        gcp_setup(args.stage)
     else:
         logger.error("Unkown deployment type. Either use 'local or 'gcp'")
         exit("Unkown deployment type. Either use 'local or 'gcp'")
