@@ -75,9 +75,13 @@ Futher configurations should be done in the template itself.
 6. Run `make setup-plattform-gcp` 
 
 
-**Domainsetup:** see above
-
-**Features:** Minikube, Helm, Hyberkit, Kubernetes v1.10, /etc/hosts, Istio 1.0, (optional) Local Domain Setup
+**Domainsetup:**
+1. Sign up for an AWS account and [register](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/registrar.html) your domain with route53 
+2. Update the variables file in `config/route53/dev.tfvars` with your registered domain name (`domain_name`) and the static ip of your istio ingress (`ip`)
+3. Create an [IAM account](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html#id_users_create_console) with the rights to create a rout53 domain entry and save the `AWS_ACCESS_KEY_ID` and the `AWS_SECRET_ACCESS_KEY` and export then as environment variables.
+4. Run in the root directory of the repo (that includes the `Makefile`) `setup-domain-route53`
+  
+**Features:** Minikube, Helm, Hyberkit, Kubernetes v1.10, /etc/hosts, Istio 1.0, (optional) Route53 Domain Setup
 
 * **Features:** GKE, Helm, Kubernetes v1.10, Istio 1.0
 
