@@ -12,12 +12,15 @@ setup-platform-gcp-dev:
 setup-domain-route53:
 	cd config/route53 && terraform init && terraform apply --var-file='dev.tfvars'
 
+setup-apigee:
+	tasks/setup-platform.py apigee --stage=dev
+
 delete-platform-gcp-dev:
 	cd config/gke && terraform destroy -var username=${CLUSTER_PW} -var password=${CLUSTER_PW} -var-file=dev.tfvars
 	
 configure-platform:
 	kubectl apply -f config/templates/network-d10l.yaml
-	# add more plattform configuration - if it gets to complex outsource it into its own tasks scrip
+	# add more plattform configuration - if it gets to complex outsource it into its own tasks script
 
 get-platform-config:
 	kubectl -n istio-system get service istio-ingressgateway -o 'jsonpath={.status.loadBalancer.ingress[0].ip}'

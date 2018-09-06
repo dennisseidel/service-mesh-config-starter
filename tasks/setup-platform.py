@@ -143,6 +143,17 @@ def install_istio(target):
     INGRESS_HOST=INGRESS_HOST.stdout
     logger.info('Ingress Host: ' + INGRESS_HOST.decode("utf-8"))
 
+def setup_apigee(stage):
+    logger.info('Setup Apigee:')
+    os.system(f"""
+                cd ../config/apigee &&
+                kubectl apply -f {stage}-definitions.yaml &&
+                kubectl apply -f {stage}-rule.yaml &&
+                kubectl -n istio-system set image deployment/istio-telemetry mixer=gcr.io/apigee-api-management-istio/istio-mixer:1.0.0 &&
+                kubectl -n istio-system set image deployment/istio-policy mixer=gcr.io/apigee-api-management-istio/istio-mixer:1.0.0
+                """)
+    logger.info("IMPORTANT: create a handler.yaml file with the apigee-istio-cli and deploy it by hand.")
+
 def local_setup():
     my_platform = check_platform(platform)
     install_dependencies(my_platform)
@@ -155,7 +166,6 @@ def gcp_setup(stage):
     create_cluster(my_platform, "gcp", stage)
     install_istio('gcp')
 
-
 if __name__ == '__main__':
     logger = logging.getLogger()
     handler = logging.StreamHandler()
@@ -165,14 +175,21 @@ if __name__ == '__main__':
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
     parser = argparse.ArgumentParser()
-    parser.add_argument("type", help="specifies the the deployment e.g. local or gcp")
+    parser.add_argument("type", help="specifies the the deployment e.g. local or gcp, apigee")
     parser.add_argument("--stage", help="stage to deloy to")
+    parser.add_argument("--apigee", help="install apigee into the mesh")
     args = parser.parse_args()
     go_to_script_location()
     if args.type == 'local':
         local_setup()
+        if args.apigee == 'true':
+            setup_apigee(args.stage)
     elif args.type == 'gcp':
         gcp_setup(args.stage)
+        if args.apigee == 'true':
+            setup_apigee(args.stage)
+    elif args.type == 'apigee':
+        setup_apigee(args.stage)
     else:
         logger.error("Unkown deployment type. Either use 'local or 'gcp'")
         exit("Unkown deployment type. Either use 'local or 'gcp'")

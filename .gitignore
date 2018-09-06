@@ -1,6 +1,0 @@
-.DS_Store
-istio-*
-.terraform
-*.tfstate*
-venv
-.vscode
