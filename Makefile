@@ -19,7 +19,7 @@ delete-platform-gcp-dev:
 	cd config/gke && terraform destroy -var username=${CLUSTER_PW} -var password=${CLUSTER_PW} -var-file=dev.tfvars
 	
 configure-platform:
-	kubectl apply -f config/templates/network-d10l.yaml
+	kubectl apply -f config/network/d10l-network.yaml
 	# add more plattform configuration - if it gets to complex outsource it into its own tasks script
 
 get-platform-config:
