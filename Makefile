@@ -15,6 +15,10 @@ setup-domain-route53:
 setup-apigee:
 	tasks/setup-platform.py apigee --stage=dev
 
+setup-keycloak:
+	cd config/keycloak && helm install --name keycloak -f dev-values.yaml stable/keycloak
+	kubectl apply -f config/keycloak/keycloak-gateway.yaml
+
 delete-platform-gcp-dev:
 	cd config/gke && terraform destroy -var username=${CLUSTER_PW} -var password=${CLUSTER_PW} -var-file=dev.tfvars
 	

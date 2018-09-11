@@ -73,7 +73,7 @@ def create_cluster(os_platform, target, stage):
                         --extra-config=controller-manager.ClusterSigningKeyFile="/var/lib/localkube/certs/ca.key" \
                         --kubernetes-version=v1.10.0 \
                         --extra-config=apiserver.ServiceNodePortRange=79-36000')
-                run_cmd('kubectl apply -f ../config/rbac/default-sa-cluster-admin.yaml')
+                os.system('kubectl apply -f ../config/rbac/default-sa-cluster-admin.yaml')
         elif target == "gcp":
             if os_platform == 'osx':
                 if not program_exists('terraform'):
