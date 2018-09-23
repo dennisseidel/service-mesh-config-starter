@@ -9,7 +9,7 @@ keycloak:
 
   image:
     repository: jboss/keycloak
-    tag: 4.2.1.Final
+    tag: 4.3.0.Final
     pullPolicy: IfNotPresent
 
     ## Optionally specify an array of imagePullSecrets.
@@ -26,7 +26,7 @@ keycloak:
     runAsNonRoot: false
 
   ## The path keycloak will be served from. To serve keycloak from the root path, use two quotes (e.g. "").
-  basepath: auth
+  basepath: ""
 
   ## Additional init containers, e. g. for providing custom themes
   extraInitContainers: |
